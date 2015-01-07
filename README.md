@@ -5,4 +5,4 @@ but I ran into issues importing his project into Android Studio so I wrote it fr
 
 I threw this project together in a few hours. Absolutely no guarantees come with this. 
 
-~~USE AT YOUR OWN RISK~~
+<b>USE AT YOUR OWN RISK</b>
