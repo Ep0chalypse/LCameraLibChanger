@@ -43,5 +43,22 @@
             android:id="@+id/btnStock"
             android:layout_gravity="center_horizontal"
             android:onClick="btnStock" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Current"
+            android:id="@+id/currentLibLabel"
+            android:layout_gravity="center_horizontal"
+            android:textSize="30dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/currentLibValue"
+            android:layout_gravity="center_horizontal"
+            android:textSize="50dp"
+            android:textColor="#f44336"
+            android:textStyle="bold" />
     </LinearLayout>
 </RelativeLayout>

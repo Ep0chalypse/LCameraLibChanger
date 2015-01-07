@@ -1,9 +1,10 @@
 package us.roob.lcameralibchanger;
 
+import android.app.Activity;
 import android.graphics.Color;
 import android.os.Build;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,15 +23,17 @@ import java.io.InputStreamReader;
 import rootcheck.Root;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
 
     Button btn60Fps;
     Button btn120Fps;
+    Button btnStock;
     TextView main;
+    TextView currentValue;
+    private final String libLocation = "/system/lib/libmmcamera_imx179.so";
     private final String stockSha = "37ddbd2ebd1460a80252f2d33bb43cc6142d3842d10646d2acdc8d671c83cb0f";
     private final String mod60FpsSha = "1a17cdc851ef0daef9fdcea3f83f9c19b7c2d31802521b1a895096d4b938506c";
     private final String mod120FpsSha = "3b6eefa2e878f7cb583ab07a3a256dc973f83558a20f5df8f63b057a0d7d97c7";
-    private final String libLocation = "/system/lib/libmmcamera_imx179.so";
 
 
     @Override
@@ -39,14 +42,14 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         main = (TextView) findViewById(R.id.mainTextView);
+        currentValue = (TextView)findViewById(R.id.currentLibValue);
         btn60Fps = (Button) findViewById(R.id.btn60Fps);
         btn120Fps = (Button) findViewById(R.id.btn120FPS);
-        //hide buttons and only show them if the deivce is a nexus 5 and rooted.
+        btnStock = (Button) findViewById(R.id.btnStock);
+        //hide buttons and only show them if the device is a nexus 5 and rooted.
         btn60Fps.setVisibility(View.GONE);
         btn120Fps.setVisibility(View.GONE);
-
-        File filesDir = getFilesDir();
-        //Scanner input = new Scanner(new File(filesDir, filename));
+        btnStock.setVisibility(View.GONE);
 
         Root r = new Root();
         // Check to make sure the device is a Nexus 5.
@@ -57,39 +60,46 @@ public class MainActivity extends ActionBarActivity {
             } else {
                 btn60Fps.setVisibility(View.VISIBLE);
                 btn120Fps.setVisibility(View.VISIBLE);
-                //main.setText("sha: " + SHA256sum.getLinuxSum());
+                btnStock.setVisibility(View.VISIBLE);
 
+                //checks the current lib when app is started.
+                switch (getCurrentLibSHA()) {
+                    case stockSha:
+                        currentValue.setText("Stock");
+                        break;
+                    case mod60FpsSha:
+                        currentValue.setText("60 FPS");
+                        break;
+                    case mod120FpsSha:
+                        currentValue.setText("120 FPS");
+                        break;
+                    default:
+                        currentValue.setText("Stock");
+                }
             }
         } else {
             main.setTextColor(Color.RED);
             main.setText("This app is only for the LGE Nexus 5 :'(");
         }
-
-
     }//end onCreate
 
     public void btn60Fps(View v) {
         String tmpFile = unpackLibFromAssets("libmmcamera_imx179_lrx21o_60hz.so");
         installLibToSystem(tmpFile);
-        Toast.makeText(this, "Clicked on Button", Toast.LENGTH_LONG).show();
+        currentValue.setText("60 FPS");
     }
 
     public void btn120Fps(View v) {
         String tmpFile = unpackLibFromAssets("libmmcamera_imx179_lrx21o_120hz.so");
         installLibToSystem(tmpFile);
-        Toast.makeText(this, "Clicked on Button", Toast.LENGTH_LONG).show();
+        currentValue.setText("120 FPS");
     }
 
     public void btnStock(View v) {
         String tmpFile = unpackLibFromAssets("libmmcamera_imx179.so");
         installLibToSystem(tmpFile);
-
-        Toast.makeText(this, "Clicked on Button", Toast.LENGTH_LONG).show();
-        main.setText("Sum: " + getCurrentLibSHA());
-        //Toast.makeText(this, "Lib exists", Toast.LENGTH_LONG).show();
-
+        currentValue.setText("Stock");
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -138,10 +148,6 @@ public class MainActivity extends ActionBarActivity {
 
 
     private String unpackLibFromAssets(String asset) {
-        //File f = new File(getCacheDir() + "/" + asset);
-        Log.d("Copy", "Asset: " + getCacheDir() + "/" + asset);
-
-
         File cacheFile = new File(getCacheDir(), asset);
         try {
             InputStream inputStream = getAssets().open(asset);
@@ -164,83 +170,23 @@ public class MainActivity extends ActionBarActivity {
         }
         Log.d("COPY", "Path: " + cacheFile.getPath());
         return cacheFile.getPath();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//        try {
-//
-//            InputStream is = getAssets().open(asset);
-//            int size = is.available();
-//            byte[] buffer = new byte[size];
-//            is.read(buffer);
-//            is.close();
-//
-//
-//            FileOutputStream fos = new FileOutputStream(f);
-//            fos.write(buffer);
-//            fos.close();
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//
-//        Log.d("Copy", "tmpfile Location: " + f.getPath());
-//        return f.getPath();
     }
 
     private void installLibToSystem(String tempFile) {
-        ///system/lib/libmmcamera_imx179.so
-        File lib = new File("/system/lib/libmmcamera_imx179.so");
-        String sum;
         try {
-            // Executes the command.
             Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", "mount -o remount,rw /system&&" +
-                    "install -m644 " + tempFile + " " + libLocation + "&&"+
+                    "install -m644 " + tempFile + " " + libLocation + "&&" +
                     "mount -o remount,ro /system&&" +
                     "killall mm-qcamera-daemon mediaserver&&" +
                     "killall pkmx.lcamera"});
-
-            // Reads stdout.
-            // NOTE: You can write to stdin of the command using
-            //       process.getOutputStream().
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()));
-            int read;
-            char[] buffer = new char[4096];
-            StringBuffer output = new StringBuffer();
-            while ((read = reader.read(buffer)) > 0) {
-                output.append(buffer, 0, read);
-            }
-            reader.close();
-
-            // Waits for the command to finish.
             process.waitFor();
-
-            sum = output.toString();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 
-
-    private void mountSystemRW(){
-
-    }
 
     private String getCurrentLibSHA() {
         ///system/lib/libmmcamera_imx179.so
@@ -249,7 +195,6 @@ public class MainActivity extends ActionBarActivity {
         try {
             // Executes the command.
             Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", "sha256sum " + lib});
-
             // Reads stdout.
             // NOTE: You can write to stdin of the command using
             //       process.getOutputStream().
@@ -275,20 +220,6 @@ public class MainActivity extends ActionBarActivity {
 
 
         return sum.split(" ")[0];
-    }
-
-
-    public String runRootCMD(String[] cmd) {
-        try {
-            Process process = Runtime.getRuntime().exec("su");
-            process.waitFor();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        return "";
     }
 
 
