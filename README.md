@@ -8,4 +8,4 @@ I threw this project together in a few hours. Absolutely no guarantees come with
 <b>USE AT YOUR OWN RISK</b>
 
 
-<b><a> href="https://github.com/Wicked0ne/LCameraLibChanger/releases">Download APK Here</a></b>
+<<a> href="https://github.com/Wicked0ne/LCameraLibChanger/releases"><b>Download APK Here</b></a>
